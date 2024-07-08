@@ -1,0 +1,151 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DB_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Workspace {
+  id                String             @id @default(cuid())
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @updatedAt
+  name              String?
+  description       String?
+  recognitionModels RecognitionModel[]
+  cameras           Camera[]
+  users             User[]
+  rules             Rule[]
+  zones             Zone[]
+  notifications     Notification[]
+  statistics        Statistic[]
+  apiSettings       ApiSetting[]
+  supportRequests   SupportRequest[]
+}
+
+model RecognitionModel {
+  id          String     @id @default(cuid())
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  name        String?
+  description String?
+  version     String?
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id])
+  workspaceId String?
+}
+
+model ApiSetting {
+  id            String     @id @default(cuid())
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+  name          String?
+  endpoint      String?
+  configuration Json?
+  workspace     Workspace? @relation(fields: [workspaceId], references: [id])
+  workspaceId   String?
+}
+
+model Camera {
+  id          String      @id @default(cuid())
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  name        String?
+  ipAddress   String?
+  location    String?
+  settings    Json?
+  workspace   Workspace?  @relation(fields: [workspaceId], references: [id])
+  workspaceId String?
+  rules       Rule[]
+  zones       Zone[]
+  statistics  Statistic[]
+}
+
+model Rule {
+  id          String     @id @default(cuid())
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  name        String?
+  criteria    String?
+  camera      Camera?    @relation(fields: [cameraId], references: [id])
+  cameraId    String?
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id])
+  workspaceId String?
+}
+
+model Notification {
+  id          String                     @id @default(cuid())
+  createdAt   DateTime                   @default(now())
+  updatedAt   DateTime                   @updatedAt
+  typeField   EnumNotificationTypeField?
+  message     String?
+  user        User?                      @relation(fields: [userId], references: [id])
+  userId      String?
+  workspace   Workspace?                 @relation(fields: [workspaceId], references: [id])
+  workspaceId String?
+}
+
+model Zone {
+  id          String     @id @default(cuid())
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  name        String?
+  boundaries  Json?
+  camera      Camera?    @relation(fields: [cameraId], references: [id])
+  cameraId    String?
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id])
+  workspaceId String?
+}
+
+model Statistic {
+  id          String     @id @default(cuid())
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  metrics     Json?
+  report      String?
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id])
+  workspaceId String?
+  camera      Camera?    @relation(fields: [cameraId], references: [id])
+  cameraId    String?
+}
+
+model SupportRequest {
+  id          String                      @id @default(cuid())
+  createdAt   DateTime                    @default(now())
+  updatedAt   DateTime                    @updatedAt
+  issue       String?
+  priority    EnumSupportRequestPriority?
+  status      EnumSupportRequestStatus?
+  user        User?                       @relation(fields: [userId], references: [id])
+  userId      String?
+  workspace   Workspace?                  @relation(fields: [workspaceId], references: [id])
+  workspaceId String?
+}
+
+model User {
+  id              String           @id @default(cuid())
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  firstName       String?
+  lastName        String?
+  username        String           @unique
+  email           String?          @unique
+  password        String
+  roles           Json
+  workspace       Workspace?       @relation(fields: [workspaceId], references: [id])
+  workspaceId     String?
+  notifications   Notification[]
+  supportRequests SupportRequest[]
+}
+
+enum EnumNotificationTypeField {
+  Option1
+}
+
+enum EnumSupportRequestPriority {
+  Option1
+}
+
+enum EnumSupportRequestStatus {
+  Option1
+}
